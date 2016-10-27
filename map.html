@@ -1,77 +1,167 @@
 <!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport"></meta>
-<title>NickGpsData - Google Fusion Tables</title>
-<style type="text/css">
-html, body, #googft-mapCanvas {
-  height: 300px;
-  margin: 0;
-  padding: 0;
-  width: 500px;
-}
-</style>
+<html lang='en'>
+  <head>
+    <title>Searchable Map Template Demo</title>
+    <meta charset='utf-8' />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta content='' name='description' />
+    <meta content='' name='author' />
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="css/custom.css"/>
+    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script type="text/javascript" src="https://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+	<link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.min.css"/>
+  </head>
+  <body>
+    <div class='navbar navbar-default navbar-static-top'>
+      <div class='container-fluid'>
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class='navbar-brand' href='index.html'>Searchable Map Template</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li class='active'><a href="index.html">Map</a></li>
+            <li><a href="about.html">About</a></li>
+          </ul>
+        </div><!--/.nav-collapse -->
+      </div>
+    </div>
+    <div class='container-fluid'>
+      <div class='row'>
+        <div class='col-md-4'>
+          <p>This is a demo of <a href='http://derekeder.com'>Derek Eder's</a> <a href='http://derekeder.com/searchable_map_template/'>Searchable Map Template</a> using Google <a href='http://support.google.com/fusiontables/answer/2571232?hl=en&ref_topic=1652595'>Fusion Tables</a>. Use this section to give a little context to your map.</p>
+          <div class='well'>
+            <h4>
+              Address <small>(<a id='find_me' href='#'>find me</a>)</small>
+            </h4>
+            <p>
+              <input class='form-control' id='search_address' placeholder='Enter an address' type='text' />
+            </p>
+            <br />
+			
+			<h4>
+				Date
+				<small>
+				<span id="startDate"></span>
+				- 
+				<span id="endDate"></span>
+				</small>
+			</h4>
+			<div id="date-range"></div>
+			<p class='pull-left' id='minDate'></p>
+			<p class='pull-right' id='maxDate'></p>
+			<br />
+			<h4>
+			  Activity Type
+			</h4>
+			<label>
+			  <select id='select_type'>
+				<option value=''>All</option>
+				<option value='Hike'>Hike</option>
+				<option value='Ride'>Ride</option>
+				<option value='Run'>Run</option>
+				<option value='Swim'>Swim</option>
+			  </select>
+			</label>
+            <br />
+			
+            <a class='btn btn-primary' id='search' href='#'>
+              <i class='glyphicon glyphicon-search'></i>
+              Search
+            </a>
+            <a class='btn btn-default' id='reset' href='#'>
+              <i class='glyphicon glyphicon-repeat'></i>
+              Reset
+            </a>
+          </div>
+          <div class='alert alert-info' id='result_box' ><strong id='result_count'></strong></div>
+        </div>
+        <div class='col-md-8'>
+          <noscript>
+            <div class='alert alert-info'>
+              <h4>Your JavaScript is disabled</h4>
+              <p>Please enable JavaScript to view the map.</p>
+            </div>
+          </noscript>
+          <div id='map_canvas'></div>
+          <p class='pull-right'>
+            <a href='http://derekeder.com/searchable_map_template/'>Searchable Map Template</a> by <a href='http://derekeder.com'>Derek Eder</a>.
+        </p>
+        </div>
+      </div>
+    </div>
 
-<script type="text/javascript" src="https://maps.google.com/maps/api/js?v=3"></script>
+    <script type="text/javascript" src="js/jquery-1.12.4.min.js"></script>
+    <script type="text/javascript" src="js/jquery.address.js"></script>
+	<!--<script type="text/javascript" src="js/jquery.js"></script>-->
+	<script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+	<script src="js/moment.min.js"></script>
+    <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://maps.google.com/maps/api/js?sensor=false&libraries=places&key=AIzaSyBtKJo_Al_lFfrf4wEo6ASRUpWSnSE7PTU"></script>
+    <script type="text/javascript" src="js/maps_lib.js"></script>
+    <script type='text/javascript'>
+      //<![CDATA[
+        $(window).resize(function () {
+          var h = $(window).height(),
+            offsetTop = 105; // Calculate the top offset
+        
+          $('#map_canvas').css('height', (h - offsetTop));
+        }).resize();
+        
+        $(function() {
+          var myMap = new MapsLib({
+            fusionTableId:      "1o8nsMCT6tSQ4wA8-h4l_O_LgoQB6hcG8Wrhp6E84",
+            googleApiKey:       "AIzaSyBtKJo_Al_lFfrf4wEo6ASRUpWSnSE7PTU",
+            locationColumn:     "geometry",
+            map_center:         [51.4826, 0.0077],
+            locationScope:      "london"
+          });
 
-<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD0OLABL8jstmzgOLy8-lmemm89-r1N6Bo&callback=initMap"
-  type="text/javascript"></script>
+          var autocomplete = new google.maps.places.Autocomplete(document.getElementById('search_address'));
+      
+          $(':checkbox').click(function(){
+            myMap.doSearch();
+          });
 
-<script type="text/javascript">
-  function initialize() {
-    google.maps.visualRefresh = true;
-    var isMobile = (navigator.userAgent.toLowerCase().indexOf('android') > -1) ||
-      (navigator.userAgent.match(/(iPod|iPhone|iPad|BlackBerry|Windows Phone|iemobile)/));
-    if (isMobile) {
-      var viewport = document.querySelector("meta[name=viewport]");
-      viewport.setAttribute('content', 'initial-scale=1.0, user-scalable=no');
-    }
-    var mapDiv = document.getElementById('googft-mapCanvas');
-    mapDiv.style.width = isMobile ? '100%' : '500px';
-    mapDiv.style.height = isMobile ? '100%' : '300px';
-    var map = new google.maps.Map(mapDiv, {
-      center: new google.maps.LatLng(51.16642863716215, -0.7824600000000146),
-      zoom: 9,
-      mapTypeId: google.maps.MapTypeId.ROADMAP
-    });
-
-    layer = new google.maps.FusionTablesLayer({
-      map: map,
-      heatmap: { enabled: false },
-      query: {
-        select: "geometry",
-        from: "1g2Xg10W1Bf0X0cpn6fQh_Z-_AmrQ-eCo3c-tN3Ee",
-        where: ""
-      },
-      options: {
-        styleId: 2,
-        templateId: 2
-      }
-    });
-
-    if (isMobile) {
-      var legend = document.getElementById('googft-legend');
-      var legendOpenButton = document.getElementById('googft-legend-open');
-      var legendCloseButton = document.getElementById('googft-legend-close');
-      legend.style.display = 'none';
-      legendOpenButton.style.display = 'block';
-      legendCloseButton.style.display = 'block';
-      legendOpenButton.onclick = function() {
-        legend.style.display = 'block';
-        legendOpenButton.style.display = 'none';
-      }
-      legendCloseButton.onclick = function() {
-        legend.style.display = 'none';
-        legendOpenButton.style.display = 'block';
-      }
-    }
-  }
-
-  google.maps.event.addDomListener(window, 'load', initialize);
-</script>
-</head>
-
-<bobody>
-  <div id="googft-mapCanvas"></div>
-</body>
+          $(':radio').click(function(){
+            myMap.doSearch();
+          });
+          
+          $('#search_radius').change(function(){
+            myMap.doSearch();
+          });
+          
+          $('#search').click(function(){
+            myMap.doSearch();
+          });
+          
+          $('#find_me').click(function(){
+            myMap.findMe(); 
+            return false;
+          });
+          
+          $('#reset').click(function(){
+            myMap.reset(); 
+            return false;
+          });
+          
+          $(":text").keydown(function(e){
+              var key =  e.keyCode ? e.keyCode : e.which;
+              if(key === 13) {
+                  $('#search').click();
+                  return false;
+              }
+          });
+        });
+      //]]>
+    </script>
+  </body>
 </html>
